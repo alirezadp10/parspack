@@ -22,18 +22,16 @@ class StoreCommentRequest extends FormRequest
     }
 
     /**
-     * Get the comment object according to request.
+     * Get data to be validated from the request.
      *
-     * @return Comment
+     * @return array
      */
-    public function getComment(): Comment
+    public function validationData(): array
     {
-        $comment = new Comment();
+        $data = $this->all();
 
-        $comment->body = strip_tags(nl2br($this->comment));
+        $data['comment'] = strip_tags(nl2br($data['comment']));
 
-        $comment->product_id = Product::whereName($this->product_name)->first()->id;
-
-        return $comment;
+        return $data;
     }
 }

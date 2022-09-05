@@ -72,4 +72,15 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(Comment::class);
     }
+
+    /**
+     * Return boolean, which determines whether the user has the capacity to leave a new comment or not.
+     *
+     * @param  int  $productId
+     * @return boolean
+     */
+    public function canLeaveCommentOn(int $productId): bool
+    {
+        return Comment::whereUserId($this->id)->whereProductId($productId)->count() < 2;
+    }
 }
