@@ -14,4 +14,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::post('comments', [CommentController::class, 'store']);
+Route::post('comments', [CommentController::class, 'store'])->middleware('auth:api');
