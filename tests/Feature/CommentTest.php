@@ -105,8 +105,6 @@ class CommentTest extends TestCase
         ]);
 
         $this->assertEquals("a: 5 \nb: 3 \nc: 5 \nd: 9 \ne: 1 \nf: 3", File::get($path));
-
-        File::delete($path);
     }
 
     /**
@@ -126,8 +124,6 @@ class CommentTest extends TestCase
         ]);
 
         $this->assertEquals("a: 5 \nb: 3 \nc: 4 \nd: 9 \ne: 1 \nf: 3 \nproduct name: 1 \n", File::get($path));
-
-        File::delete($path);
 
         $this->assertDatabaseHas('products', ['name' => 'product name']);
 
