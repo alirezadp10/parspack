@@ -6,6 +6,7 @@ use App\Models\Comment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class CommentTest extends TestCase
@@ -82,5 +83,30 @@ class CommentTest extends TestCase
         $this->assertDatabaseHas('comments', ['body' => 'My comment.']);
 
         $this->assertDatabaseCount('comments', 6);
+    }
+    
+    /**
+     * @test
+     */
+    public function products_and_the_number_of_comments_must_be_stored_in_file()
+    {
+        $path = storage_path('framework/testing/product_comment');
+
+        File::put($path, "a: 5 \nb: 3 \nc: 4 \nd: 9 \ne: 1 \nf: 3");
+
+        config()->set('filesystems.files.product_comment.path', $path);
+
+        $user = User::factory()->create();
+
+        $product = Product::factory()->create(['name' => 'c']);
+
+        $this->actingAs($user)->postJson("api/comments", [
+            'product_name' => $product->name,
+            'comment'      => 'My comment.'
+        ]);
+
+        $this->assertEquals("a: 5 \nb: 3 \nc: 5 \nd: 9 \ne: 1 \nf: 3", File::get($path));
+
+        File::delete($path);
     }
 }

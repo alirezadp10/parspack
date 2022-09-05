@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
+use App\Jobs\UpdateProductCommentFileJob;
 use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
@@ -30,6 +31,8 @@ class CommentController extends Controller
         $comment->product_id = $product->id;
 
         $comment = $request->user()->comments()->save($comment);
+
+        UpdateProductCommentFileJob::dispatch($product);
 
         return response()->json(new CommentResource($comment), Response::HTTP_CREATED);
     }

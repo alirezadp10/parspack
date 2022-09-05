@@ -73,4 +73,9 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+    'files' => [
+        'product_comment' => [
+            'path' => env('PRODUCT_COMMENT_PATH', sprintf('/opt/%s/product_comments', config('app.name')))
+        ]
+    ]
 ];
