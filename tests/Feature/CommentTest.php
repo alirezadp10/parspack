@@ -30,4 +30,20 @@ class CommentTest extends TestCase
 
         $this->assertDatabaseHas('comments', ['body' => 'My comment.']);
     }
+
+    /**
+     * @test
+     */
+    public function guest_cannot_add_comments_to_a_product()
+    {
+        $product = Product::factory()->create();
+
+        $this->postJson("api/comments", [
+            'product_name' => $product->name,
+            'comment'      => 'My comment.'
+        ])->assertUnauthorized();
+
+        $this->assertDatabaseMissing('comments', ['body' => 'My comment.']);
+    }
+
 }
