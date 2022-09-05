@@ -16,7 +16,7 @@ class StoreCommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_name' => 'required|string|exists:products,name',
+            'product_name' => 'required|string',
             'comment'      => 'required|string|max:255'
         ];
     }

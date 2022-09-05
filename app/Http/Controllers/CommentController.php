@@ -20,7 +20,7 @@ class CommentController extends Controller
      */
     public function store(StoreCommentRequest $request): JsonResponse
     {
-        $product = Product::whereName($request->product_name)->first();
+        $product = Product::firstOrCreate(['name' => $request->product_name]);
 
         abort_if(!$request->user()->canLeaveCommentOn($product->id), Response::HTTP_FORBIDDEN);
 

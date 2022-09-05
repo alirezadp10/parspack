@@ -39,7 +39,7 @@ class UpdateProductCommentFileJob
         exec("grep '{$this->product->name}:' $file", $rows);
 
         if (empty($rows)) {
-            exec("echo '{$this->product->name}: 1' >> $file");
+            exec("echo '{$this->product->name}: 1 ' >> $file");
             return;
         }
 
