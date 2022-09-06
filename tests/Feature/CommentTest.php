@@ -129,4 +129,31 @@ class CommentTest extends TestCase
 
         $this->assertDatabaseHas('comments', ['body' => 'My comment.']);
     }
+    
+    /**
+     * @test
+     */
+    public function if_user_send_destructive_product_name_it_should_not_effect_on_application()
+    {
+        $productCommentFile = storage_path('framework/testing/product_comment');
+
+        File::put(storage_path('framework/testing/foobar'), '');
+
+        File::put($productCommentFile, "a: 5 \nb: 3 \nc: 4 \nd: 9 \ne: 1 \nf: 3 \n");
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->postJson("api/comments", [
+            'product_name' => 'product name\' .env; rm -rf storage/framework/testing/foobar \'',
+            'comment'      => 'My comment.'
+        ]);
+
+        $this->assertEquals(
+            "a: 5 \nb: 3 \nc: 4 \nd: 9 \ne: 1 \nf: 3 \nproduct name' .env; rm -rf storage/framework/testing/foobar ': 1 \n",
+            File::get($productCommentFile));
+
+        $this->assertDatabaseHas('products', ['name' => "product name' .env; rm -rf storage/framework/testing/foobar '"]);
+        
+        $this->assertFileExists(storage_path('framework/testing/foobar'));
+    }
 }

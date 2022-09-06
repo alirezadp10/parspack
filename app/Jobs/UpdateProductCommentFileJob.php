@@ -36,17 +36,15 @@ class UpdateProductCommentFileJob
     {
         $file = config('filesystems.files.product_comment.path');
 
-        exec("grep '{$this->product->name}:' $file", $rows);
+        exec("grep " . escapeshellarg($this->product->name . ':') . " $file", $rows);
 
         if (empty($rows)) {
-            exec("echo '{$this->product->name}: 1 ' >> $file");
+            exec("echo " . escapeshellarg($this->product->name . ': 1 ') . " >> $file");
             return;
         }
 
-        $productName = Str::beforeLast($rows[0], ' ');
-
         $commentCount = (int) Str::afterLast($rows[0], ' ') + 1;
 
-        exec(sprintf("sed -i 's/%s/%s %s/' %s", $rows[0], $productName, $commentCount, $file));
+        exec(sprintf("sed -i 's/%s/%s: %s/' %s", $rows[0], escapeshellarg($this->product->name), $commentCount, $file));
     }
 }
