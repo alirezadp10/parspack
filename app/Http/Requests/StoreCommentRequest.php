@@ -4,6 +4,8 @@ namespace App\Http\Requests;
 
 use App\Models\Comment;
 use App\Models\Product;
+use HTMLPurifier;
+use HTMLPurifier_Config;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCommentRequest extends FormRequest
@@ -30,7 +32,11 @@ class StoreCommentRequest extends FormRequest
     {
         $data = $this->all();
 
-        $data['comment'] = strip_tags(nl2br($data['comment']));
+        $purifier = new HTMLPurifier(HTMLPurifier_Config::createDefault());
+
+        $data['comment'] = $purifier->purify($data['comment']);
+
+        $data['product_name'] = $purifier->purify($data['product_name']);
 
         return $data;
     }
