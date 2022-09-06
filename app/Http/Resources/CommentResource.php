@@ -18,7 +18,7 @@ class CommentResource extends JsonResource
     public function toArray($request): array|JsonSerializable|Arrayable
     {
         return [
-            'comment'    => $this->body,
+            'body'       => $this->body,
             'user'       => UserResource::make($this->whenLoaded('user')),
             'product'    => ProductResource::make($this->whenLoaded('product')),
             'created_at' => $this->created_at->toDateTimeString(),

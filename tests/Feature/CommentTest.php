@@ -28,7 +28,7 @@ class CommentTest extends TestCase
             'comment'      => 'My comment.'
         ])->assertCreated();
 
-        $response->assertJson(['comment' => 'My comment.']);
+        $response->assertJson(['body' => 'My comment.']);
 
         $this->assertDatabaseHas('comments', ['body' => 'My comment.']);
     }
