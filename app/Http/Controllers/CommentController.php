@@ -8,6 +8,7 @@ use App\Jobs\UpdateProductCommentFileJob;
 use App\Models\Comment;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommentController extends Controller

@@ -11,6 +11,7 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
+        "recca0120/laravel-parallel": "dev-master",
         "tymon/jwt-auth": "dev-develop"
     },
     "require-dev": {
@@ -62,6 +63,12 @@
             "pestphp/pest-plugin": true
         }
     },
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/alirezadp10/laravel-parallel"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }

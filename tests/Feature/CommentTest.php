@@ -6,9 +6,10 @@ use App\Models\Comment;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Recca0120\LaravelParallel\ParallelRequest;
 use Tests\TestCase;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class CommentTest extends TestCase
 {
@@ -85,7 +86,7 @@ class CommentTest extends TestCase
 
         $this->assertDatabaseCount('comments', 6);
     }
-    
+
     /**
      * @test
      */
@@ -129,7 +130,7 @@ class CommentTest extends TestCase
 
         $this->assertDatabaseHas('comments', ['body' => 'My comment.']);
     }
-    
+
     /**
      * @test
      */
@@ -152,8 +153,47 @@ class CommentTest extends TestCase
             "a: 5 \nb: 3 \nc: 4 \nd: 9 \ne: 1 \nf: 3 \nproduct name' .env; rm -rf storage/framework/testing/foobar ': 1 \n",
             File::get($productCommentFile));
 
-        $this->assertDatabaseHas('products', ['name' => "product name' .env; rm -rf storage/framework/testing/foobar '"]);
-        
+        $this->assertDatabaseHas('products',
+            ['name' => "product name' .env; rm -rf storage/framework/testing/foobar '"]);
+
         $this->assertFileExists(storage_path('framework/testing/foobar'));
+    }
+
+    /**
+     * @test
+     */
+    public function race_condition_handled_in_updating_product_comment()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->switchCacheToRedis();
+
+            $this->switchDBToMysql();
+
+            Product::factory()->hasComments()->create(['name' => 'a']);
+
+            $path = storage_path('framework/testing/product_comment');
+
+            File::put($path, "a: 1 \n");
+
+            $request = $this->app->make(ParallelRequest::class);
+
+            $promises = [];
+
+            for ($j = 0; $j < 5; $j++) {
+                $promises[] = $request->withToken(JWTAuth::fromUser(User::factory()->create()))
+                    ->postJson("api/comments", [
+                        'product_name' => 'a',
+                        'comment'      => 'comment'
+                    ]);
+            }
+
+            collect($promises)->map->wait();
+
+            $this->assertEquals("a: 6 \n", File::get($path));
+
+            $this->switchDBToSqlite();
+
+            $this->switchCacheToArray();
+        }
     }
 }
