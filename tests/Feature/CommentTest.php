@@ -196,4 +196,41 @@ class CommentTest extends TestCase
             $this->switchCacheToArray();
         }
     }
+
+    /**
+     * @test
+     */
+    public function race_condition_handled_in_storing_comment()
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $this->switchCacheToRedis();
+
+            $this->switchDBToMysql();
+
+            Product::factory()->hasComments()->create(['name' => 'a']);
+
+            $request = $this->app->make(ParallelRequest::class);
+
+            $promises = [];
+
+            $user = User::factory()->create();
+
+            for ($j = 0; $j < 3; $j++) {
+                $promises[] = $request->withToken(JWTAuth::fromUser($user))
+                    ->postJson("api/comments", ['product_name' => 'a', 'comment' => 'comment']);
+            }
+
+            $statuses = collect();
+
+            collect($promises)->map->wait()->each(fn ($response) => $statuses->add($response->status()));
+
+            $this->assertCount(1, $statuses->filter(fn($status) => $status == 403));
+
+            $this->assertCount(2, $statuses->filter(fn($status) => $status == 201));
+
+            $this->switchDBToSqlite();
+
+            $this->switchCacheToArray();
+        }
+    }
 }

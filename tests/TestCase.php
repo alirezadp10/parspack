@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 abstract class TestCase extends BaseTestCase
@@ -62,6 +63,10 @@ abstract class TestCase extends BaseTestCase
     protected function switchCacheToRedis()
     {
         $_ENV['CACHE_DRIVER'] = 'redis';
+
+        Redis::flushall();
+
+        Redis::flushdb();
     }
 
     protected function switchCacheToArray()

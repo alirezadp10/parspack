@@ -23,15 +23,18 @@ class CommentController extends Controller
     {
         $product = Product::firstOrCreate(['name' => $request->product_name]);
 
-        abort_if(!$request->user()->canLeaveCommentOn($product->id), Response::HTTP_FORBIDDEN);
+        $comment = Cache::lock(__METHOD__)->block(60, function () use ($request, $product) {
 
-        $comment = new Comment();
+            abort_if(!$request->user()->canLeaveCommentOn($product->id), Response::HTTP_FORBIDDEN);
 
-        $comment->body = $request->comment;
+            $comment = new Comment();
 
-        $comment->product_id = $product->id;
+            $comment->body = $request->comment;
 
-        $comment = $request->user()->comments()->save($comment);
+            $comment->product_id = $product->id;
+
+            return $request->user()->comments()->save($comment);
+        });
 
         UpdateProductCommentFileJob::dispatch($product);
 
