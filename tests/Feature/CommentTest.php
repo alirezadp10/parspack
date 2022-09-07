@@ -15,6 +15,13 @@ class CommentTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        File::put(storage_path('framework/testing/product_comment'), "");
+    }
+
     /**
      * @test
      */
