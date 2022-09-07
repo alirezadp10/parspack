@@ -19,6 +19,13 @@ class UpdateProductCommentFileJob
     private Product $product;
 
     /**
+     * Product comments file path.
+     *
+     * @var string
+     */
+    private string $file;
+
+    /**
      * Create a new job instance.
      *
      * @param  Product  $product
@@ -26,6 +33,8 @@ class UpdateProductCommentFileJob
     public function __construct(Product $product)
     {
         $this->product = $product;
+
+        $this->file = config('filesystems.files.product_comment.path');
     }
 
     /**
@@ -36,21 +45,57 @@ class UpdateProductCommentFileJob
     public function handle()
     {
         Cache::lock(__METHOD__)->block(60, function () {
-            $file = config('filesystems.files.product_comment.path');
+            $row = $this->findProductCommentInFile();
 
-            exec("grep ".escapeshellarg($this->product->name.':')." $file", $rows);
-
-            if (empty($rows)) {
-                exec("echo ".escapeshellarg($this->product->name.': 1 ')." >> $file");
-                return;
-            }
-
-            $commentCount = (int) Str::afterLast($rows[0], ' ') + 1;
-
-            exec(sprintf(
-                "sed -i 's/%s/%s: %s/' %s",
-                $rows[0], escapeshellarg($this->product->name), $commentCount, $file
-            ));
+            is_null($row) ? $this->insertNewProductCommentToFile() : $this->updateProductComments($row);
         });
+    }
+
+    /**
+     * Find product comment in file.
+     *
+     * @return mixed
+     */
+    protected function findProductCommentInFile(): mixed
+    {
+        exec("grep ".escapeshellarg($this->product->name.':')." $this->file", $rows);
+
+        return $rows[0] ?? null;
+    }
+
+    /**
+     * Insert a new product comment to file.
+
+     * @return void
+     */
+    protected function insertNewProductCommentToFile(): void
+    {
+        exec("echo ".escapeshellarg($this->product->name.': 1 ')." >> $this->file");
+    }
+
+    /**
+     * Update product comments.
+     *
+     * @param string $row
+     */
+    protected function updateProductComments(string $row): void
+    {
+        $commentCount = $this->getCommentCount($row);
+
+        exec(sprintf(
+            "sed -i 's/%s/%s: %s/' %s",
+            $row, escapeshellarg($this->product->name), $commentCount, $this->file
+        ));
+    }
+
+    /**
+     * Get comment count.
+     *
+     * @param $subject
+     * @return int
+     */
+    protected function getCommentCount($subject): int
+    {
+        return (int) Str::afterLast($subject, ' ') + 1;
     }
 }
