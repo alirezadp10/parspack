@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Product;
+use App\Services\Cmd\Facades\Cmd;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -58,7 +59,7 @@ class UpdateProductCommentFileJob
      */
     protected function findProductCommentInFile(): mixed
     {
-        exec("grep ".escapeshellarg($this->product->name.':')." $this->file", $rows);
+        $rows = Cmd::grep($this->product->name.': ', $this->file);
 
         return $rows[0] ?? null;
     }
@@ -70,7 +71,7 @@ class UpdateProductCommentFileJob
      */
     protected function insertNewProductCommentToFile(): void
     {
-        exec("echo ".escapeshellarg($this->product->name.': 1 ')." >> $this->file");
+        Cmd::echo($this->product->name.': 1 ', $this->file);
     }
 
     /**
@@ -82,10 +83,13 @@ class UpdateProductCommentFileJob
     {
         $commentCount = $this->getCommentCount($row);
 
-        exec(sprintf(
-            "sed -i 's/%s/%s: %s/' %s",
-            $row, escapeshellarg($this->product->name), $commentCount, $this->file
-        ));
+        $search = $row;
+
+        $replace = sprintf('%s: %s', $this->product->name, $commentCount);
+
+        $file = $this->file;
+
+        Cmd::sed($search, $replace, $file);
     }
 
     /**
